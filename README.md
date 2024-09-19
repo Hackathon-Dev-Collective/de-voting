@@ -20,7 +20,7 @@ Chinese Version: [简体中文](./docs/README-zh.md)
 /types
 ```
 
-## TO-Do
+## To-Do
 
 - [ ] integrate with Rainbow-kit/thirdweb as web3 entry
 - [ ] integrate with State Manager (such as Zustand)
