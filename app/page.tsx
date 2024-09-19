@@ -1,101 +1,213 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { ConnectWallet } from "@/components/ConnectWallet";
+import { CreateVoteModal } from "@/components/CreateVoteModal";
+import Vote from "@/components/Vote";
+import { type TVote } from "@/types/vote";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [votes, setVotes] = useState<TVote[] | []>([
+    {
+      title: "sample vote",
+      id: "1",
+      options: [
+        { name: "sample option1", voteCount: 0 },
+        { name: "sample option2", voteCount: 0 },
+      ],
+      totalVotes: 0,
+      endDate: "2024-09-30",
+    },
+    {
+      title: "sample vote",
+      id: "2",
+      options: [
+        { name: "sample option1", voteCount: 0 },
+        { name: "sample option2", voteCount: 0 },
+      ],
+      totalVotes: 0,
+      endDate: "2024-10-22",
+    },
+    {
+      title: "sample vote",
+      id: "3",
+      options: [
+        { name: "sample option1", voteCount: 0 },
+        { name: "sample option2", voteCount: 0 },
+      ],
+      totalVotes: 0,
+      endDate: "2024-10-30",
+    },
+    {
+      title: "sample vote",
+      id: "1",
+      options: [
+        { name: "sample option1", voteCount: 0 },
+        { name: "sample option2", voteCount: 0 },
+      ],
+      totalVotes: 0,
+      endDate: "2024-07-30",
+    }
+  ]);
+  const [scrollY, setScrollY] = useState(0);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleAdd = (vote: TVote) => {
+    setVotes((prev) => [...prev, vote]);
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles: {
+      x: number;
+      y: number;
+      size: number;
+      speedX: number;
+      speedY: number;
+    }[] = [];
+    const particleCount = 100;
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 5 + 1,
+        speedX: Math.random() * 3 - 1.5,
+        speedY: Math.random() * 3 - 1.5,
+      });
+    }
+
+    function animate() {
+      if (!ctx || !canvas) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach((particle) => {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        particle.x += particle.speedX;
+        particle.y += particle.speedY;
+
+        if (particle.x < 0 || particle.x > canvas.width) particle.speedX *= -1;
+        if (particle.y < 0 || particle.y > canvas.height) particle.speedY *= -1;
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  return (
+    <div className="snap-y snap-mandatory h-screen overflow-y-scroll">
+      <div className="min-h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-white relative p-4">
+        <canvas ref={canvasRef} className="fixed inset-0" />
+        <div className="relative z-10">
+          <section className="h-screen flex flex-col justify-center items-center relative snap-start">
+            <div
+              className="text-center transform transition-transform duration-500 ease-out"
+              style={{ transform: `translateY(${scrollY * 0.5}px)` }}
+            >
+              <Image
+                src="/linea-logo.svg"
+                alt="Linea Logo"
+                width={100}
+                height={100}
+                className="mx-auto mb-8 animate-pulse"
+              />
+              <h1 className="text-6xl font-bold mb-4 animate-fade-in-up">
+                Linea Voting
+              </h1>
+              <p className="text-xl mb-8 animate-fade-in-up animation-delay-300">
+                Decentralized voting on the Linea network
+              </p>
+              <ConnectWallet />
+            </div>
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                />
+              </svg>
+            </div>
+          </section>
+
+          <section className="min-h-screen py-16 px-4 snap-start">
+            <div className="container mx-auto">
+              <h2 className="text-4xl font-bold mb-8 text-center">
+                Recent Votes
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {votes.length > 0 &&
+                  votes.map((vote) => (
+                    <Vote
+                      key={vote.id}
+                      title={vote.title}
+                      vote_id={vote.id}
+                      end_date={vote.endDate}
+                    />
+                  ))}
+              </div>
+            </div>
+            <CreateVoteModal addVotes={handleAdd} />
+          </section>
+          <section className="min-h-screen py-16 px-4 snap-start">
+            <div className="container mx-auto">
+              <h2 className="text-4xl font-bold mb-8 text-center">
+                History Votes
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {votes.length > 0 &&
+                  votes.map((vote) => (
+                    <Vote
+                      key={vote.id}
+                      title={vote.title}
+                      vote_id={vote.id}
+                      end_date={vote.endDate}
+                      show_history={true}
+                    />
+                  ))}
+              </div>
+            </div>
+          </section>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
-  );
-}
+  );}
