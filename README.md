@@ -19,3 +19,9 @@ Chinese Version: [简体中文](./docs/README-zh.md)
     RewardAnimation.tsx
 /types
 ```
+
+## TO-Do
+
+- [ ] integrate with Rainbow-kit/thirdweb as web3 entry
+- [ ] integrate with State Manager (such as Zustand)
+- [ ] integrate with React-Query (for caching query)

@@ -17,3 +17,9 @@
     RewardAnimation.tsx
 /types
 ```
+
+## To-Do
+
+- [ ] 集成web3入口(rainbow-kit/thirdweb)
+- [ ] 集成全局状态管理(zustand)
+- [ ] 集成react-query(缓存请求)
