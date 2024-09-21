@@ -128,7 +128,7 @@ export default function Home() {
 
   return (
     <div className="snap-y snap-mandatory h-screen overflow-y-scroll">
-      <div className="min-h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-white relative p-4">
+      <div className="min-h-screen bg-black text-white relative p-4">
         <canvas ref={canvasRef} className="fixed inset-0" />
         <div className="relative z-10">
           <section className="h-screen flex flex-col justify-center items-center relative snap-start">
@@ -139,11 +139,11 @@ export default function Home() {
               <Image
                 src="/linea-logo.svg"
                 alt="Linea Logo"
-                width={100}
-                height={100}
-                className="mx-auto mb-8 animate-pulse"
+                width={800}
+                height={800}
+                className="mx-auto mb-8"
               />
-              <h1 className="text-6xl font-bold mb-4 animate-fade-in-up">
+              <h1 className="text-8xl font-bold mb-4 animate-fade-in-up">
                 Linea Voting
               </h1>
               <p className="text-xl mb-8 animate-fade-in-up animation-delay-300">

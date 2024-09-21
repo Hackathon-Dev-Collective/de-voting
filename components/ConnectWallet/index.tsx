@@ -5,7 +5,31 @@ import { useRouter } from 'next/navigation'
 
 export function ConnectWallet() {
   const [isConnecting, setIsConnecting] = useState(false)
+  const [account, setAccount] = useState(null)
   const router = useRouter()
+
+  const switchToLinea = async () => {
+    if (account == null) {
+      if (window.ethereum) {
+        const accounts = await window.ethereum.request({
+          "method": "eth_requestAccounts",
+          "params": [],
+        });
+        await setAccount(accounts[0])
+
+        // how to switch net: https://docs.metamask.io/wallet/reference/wallet_switchethereumchain/
+        // what's the net chainId?: https://chainlist.org/?testnets=true&search=linea
+        await window.ethereum.request({
+          "method": "wallet_switchEthereumChain",
+          "params": [
+          {
+            chainId: "0xe705"
+          }
+        ],
+        });
+      }
+    }
+  }
 
   const connectWallet = async () => {
     setIsConnecting(true)
@@ -17,11 +41,11 @@ export function ConnectWallet() {
 
   return (
     <button
-      onClick={connectWallet}
+      onClick={switchToLinea}
       disabled={isConnecting}
-      className="bg-white text-purple-600 px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-colors"
+      className="bg-custom-blue text-black px-8 py-2 rounded-full font-semibold hover:bg-opacity-70 transition-colors"
     >
-      {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+      {account != null ? account : 'Connect Wallet'}
     </button>
   )
 }
