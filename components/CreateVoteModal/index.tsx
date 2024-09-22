@@ -31,7 +31,7 @@ export function CreateVoteModal({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 right-8 bg-white text-purple-600 px-6 py-3 rounded-full font-semibold enabled:hover:bg-opacity-90 transition-colors shadow-lg disabled:opacity-50"
+        className="fixed bottom-8 right-8 bg-custom-blue text-black px-6 py-3 rounded-full font-semibold enabled:hover:bg-opacity-90 transition-colors shadow-lg disabled:opacity-50"
         disabled={disabled}
       >
         Create Vote
