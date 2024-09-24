@@ -14,14 +14,16 @@ Chinese Version: [简体中文](./docs/README-zh.md)
     /[id]
       /page.tsx (Voting Results)
 /components
+    AddressShorten.tsx
+    Vote.tsx
+    VoteHistory.tsx
+    RewardAnimation.tsx
+    RewardHIstory.tsx
     ConnectWallet.tsx
     CreateVoteModal.tsx
     RewardAnimation.tsx
 /types
+/hooks
+    account.ts
+contracts.ts
 ```
-
-## To-Do
-
-- [ ] integrate with Rainbow-kit/thirdweb as web3 entry
-- [ ] integrate with State Manager (such as Zustand)
-- [ ] integrate with React-Query (for caching query)

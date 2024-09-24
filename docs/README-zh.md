@@ -12,14 +12,16 @@
     /[id]
       /page.tsx (投票结果页面)
 /components
+    AddressShorten.tsx
+    Vote.tsx
+    VoteHistory.tsx
+    RewardAnimation.tsx
+    RewardHIstory.tsx
     ConnectWallet.tsx
     CreateVoteModal.tsx
     RewardAnimation.tsx
 /types
+/hooks
+    account.ts
+contracts.ts
 ```
-
-## To-Do
-
-- [ ] 集成web3入口(rainbow-kit/thirdweb)
-- [ ] 集成全局状态管理(zustand)
-- [ ] 集成react-query(缓存请求)
