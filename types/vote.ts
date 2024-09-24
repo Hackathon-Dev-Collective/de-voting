@@ -1,4 +1,4 @@
-type TOption = {
+export type TOption = {
   name: string;
   voteCount: number;
 };

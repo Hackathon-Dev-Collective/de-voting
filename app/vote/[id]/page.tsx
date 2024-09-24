@@ -2,29 +2,55 @@
 
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { type TVoteData } from "../../../types/vote";
+import { type TVote, type TOption } from "../../../types/vote";
+import { ethers, Contract } from "ethers";
+
+const deVotingContractABI = [
+  "function voteId() public view returns (uint256)",
+  "function getVote(uint256 voteId) public view returns(string memory _topic, string[] memory _options, uint256[] memory _optionsCount, address _owner, uint256 _endTime)"
+]
+const deVotingAddress = "0x57Ea7AcA1331e403192BcCdF5449937a54CF2C45";
 
 export default function VoteResultPage() {
   const { id } = useParams();
-  const [voteData, setVoteData] = useState<TVoteData| null>(null);
+  // const [voteData, setVoteData] = useState<TVoteData| null>(null);
+  const [voteData, setVoteData] = useState<TVote| null>(null);
+
+  const getVote = async() => {
+    // const account = localStorage.getItem('linea_devoting/address');
+    
+    if (window.ethereum) {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const contract = new Contract(deVotingAddress, deVotingContractABI, provider);
+      const voteStruct = await contract.getVote(id);
+
+      const options: TOption[] = voteStruct[1].map((optionName: string, index: number) => ({
+        name: optionName,
+        voteCount: Number(voteStruct[2][index]), // 将 optionsCount 转为数字
+      }));
+
+      // const vote: TVote = {id: i.toString(), title: voteStruct[0], endDate: new Date(Number(voteStruct[4]) * 1000).toISOString().split('T')[0]};
+      const vote: TVote = {
+        id: id.toString(), // 将 id 转为字符串
+        title: voteStruct[0], // 从合约中返回的投票标题
+        options: options, // 将选项和对应的投票数填入数组
+        totalVotes: options.reduce((total, option) => total + option.voteCount, 0), // 计算总投票数
+        endDate: new Date(Number(voteStruct[4]) * 1000).toISOString().split('T')[0], // 转换时间戳为日期字符串
+      };
+      setVoteData(vote);
+    }
+  }
+
 
   // get vote data
   useEffect(() => {
-    setVoteData({
-      title: "Sample Vote Topic",
-      options: [
-        { name: "Option 1", voteCount: 10 },
-        { name: "Option 2", voteCount: 15 },
-        { name: "Option 3", voteCount: 5 },
-      ],
-      totalVotes: 30,
-    });
+    getVote();
   }, [id]);
 
   if (!voteData) return <div>Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-white p-8">
+    <div className="min-h-screen bg-black text-white p-8">
       <div className="max-w-md mx-auto bg-white bg-opacity-20 p-8 rounded-lg">
         <h1 className="text-3xl font-bold mb-4">{voteData.title}</h1>
         <p className="mb-4">Total Votes: {voteData.totalVotes}</p>

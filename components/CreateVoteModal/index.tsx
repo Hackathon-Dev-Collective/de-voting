@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import { type TVote } from "../../types/vote";
+import { ethers, Contract } from "ethers";
+
+const deVotingContractABI = [
+  // "function getVote(uint256 voteId) public view returns(string memory _topic, string[] memory _options, uint256[] memory _optionsCount, address _owner, uint256 _endTime)",
+  "function createVote(string memory _topic, string[] memory _options, uint256 _endTimestampSeconds) public returns (uint256)"
+]
+const deVotingAddress = "0x57Ea7AcA1331e403192BcCdF5449937a54CF2C45";
 
 export function CreateVoteModal({
   addVotes, disabled = false
@@ -14,17 +21,33 @@ export function CreateVoteModal({
   const [options, setOptions] = useState(["", ""]);
   const [endDate, setEndDate] = useState("");
 
+  const createVote = async() => {
+    // addVotes({
+    //   title,
+    //   id: Date.now().toString(),
+    //   options: 
+    //     options.map((option) => ({ name: option, voteCount: 0 })),
+    //   totalVotes: 0,
+    //   endDate,
+    // })
+
+    if (window.ethereum) {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new Contract(deVotingAddress, deVotingContractABI, signer);
+
+      const endDateTimeStamp = new Date(endDate); // 将其转换为 Date 对象
+      const unixTimestampInSeconds = Math.floor(endDateTimeStamp.getTime() / 1000); 
+
+      const optionsArray = Object.keys(options).map(key => options[key].toString());
+      const voteId = await contract.createVote(title, optionsArray, unixTimestampInSeconds);
+      await voteId.wait();
+      setIsOpen(false);
+    }
+  }
   const handleCreateVote = (e: React.FormEvent) => {
     e.preventDefault();
-    addVotes({
-      title,
-      id: Date.now().toString(),
-      options: 
-        options.map((option) => ({ name: option, voteCount: 0 })),
-      totalVotes: 0,
-      endDate,
-    })
-    setIsOpen(false);
+    createVote();
   };
 
   return (
@@ -39,7 +62,7 @@ export function CreateVoteModal({
 
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white text-purple-600 p-8 rounded-lg w-full max-w-md">
+          <div className="bg-white text-black p-8 rounded-lg w-full max-w-md">
             <h2 className="text-2xl font-bold mb-4">Create New Vote</h2>
             <form onSubmit={handleCreateVote}>
               <input
@@ -86,7 +109,7 @@ export function CreateVoteModal({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-purple-600 text-white rounded"
+                  className="px-4 py-2 bg-black text-white rounded"
                 >
                   Create
                 </button>

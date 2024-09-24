@@ -27,7 +27,7 @@ export default function Vote({
           </p>
           <Link
             href={`/vote/${vote_id}`}
-            className="inline-block bg-white text-purple-600 px-6 py-2 rounded-full hover:bg-opacity-90 transition-colors"
+            className="inline-block bg-white text-black px-6 py-2 rounded-full hover:bg-opacity-90 transition-colors"
           >
             View Results
           </Link>
@@ -42,7 +42,7 @@ export default function Vote({
           <p className="mb-4">Ended in {endDate.toLocaleDateString()}</p>
           <Link
             href={`/vote/${vote_id}`}
-            className="inline-block bg-white text-purple-600 px-6 py-2 rounded-full hover:bg-opacity-90 transition-colors"
+            className="inline-block bg-white text-black px-6 py-2 rounded-full hover:bg-opacity-90 transition-colors"
           >
             View Results
           </Link>

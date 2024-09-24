@@ -5,52 +5,62 @@ import Image from "next/image";
 import { ConnectWallet } from "@/components/ConnectWallet";
 import { CreateVoteModal } from "@/components/CreateVoteModal";
 import Vote from "@/components/Vote";
-import { type TVote } from "@/types/vote";
+import { type TVote, type TOption } from "@/types/vote";
+import { ethers, Contract } from "ethers";
+
+const deVotingContractABI = [
+  "function voteId() public view returns (uint256)",
+  "function getVote(uint256 voteId) public view returns(string memory _topic, string[] memory _options, uint256[] memory _optionsCount, address _owner, uint256 _endTime)"
+]
+const deVotingAddress = "0x57Ea7AcA1331e403192BcCdF5449937a54CF2C45";
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [votes, setVotes] = useState<TVote[] | []>([
-    {
-      title: "sample vote",
-      id: "1",
-      options: [
-        { name: "sample option1", voteCount: 0 },
-        { name: "sample option2", voteCount: 0 },
-      ],
-      totalVotes: 0,
-      endDate: "2024-09-30",
-    },
-    {
-      title: "sample vote",
-      id: "2",
-      options: [
-        { name: "sample option1", voteCount: 0 },
-        { name: "sample option2", voteCount: 0 },
-      ],
-      totalVotes: 0,
-      endDate: "2024-10-22",
-    },
-    {
-      title: "sample vote",
-      id: "3",
-      options: [
-        { name: "sample option1", voteCount: 0 },
-        { name: "sample option2", voteCount: 0 },
-      ],
-      totalVotes: 0,
-      endDate: "2024-10-30",
-    },
-    {
-      title: "sample vote",
-      id: "1",
-      options: [
-        { name: "sample option1", voteCount: 0 },
-        { name: "sample option2", voteCount: 0 },
-      ],
-      totalVotes: 0,
-      endDate: "2024-07-30",
-    }
-  ]);
+  const [votes, setVotes] = useState<TVote[] | []>([]);
+  // const [votes, setVotes] = useState<TVote[] | []>([
+  //   {
+  //     title: "sample vote",
+  //     id: "1",
+  //     options: [
+  //       { name: "sample option1", voteCount: 0 },
+  //       { name: "sample option2", voteCount: 0 },
+  //     ],
+  //     totalVotes: 0,
+  //     endDate: "2024-09-30",
+  //   },
+  //   {
+  //     title: "sample vote",
+  //     id: "2",
+  //     options: [
+  //       { name: "sample option1", voteCount: 0 },
+  //       { name: "sample option2", voteCount: 0 },
+  //     ],
+  //     totalVotes: 0,
+  //     endDate: "2024-10-22",
+  //   },
+  //   {
+  //     title: "sample vote",
+  //     id: "3",
+  //     options: [
+  //       { name: "sample option1", voteCount: 0 },
+  //       { name: "sample option2", voteCount: 0 },
+  //     ],
+  //     totalVotes: 0,
+  //     endDate: "2024-10-30",
+  //   },
+  //   {
+  //     title: "sample vote",
+  //     id: "1",
+  //     options: [
+  //       { name: "sample option1", voteCount: 0 },
+  //       { name: "sample option2", voteCount: 0 },
+  //     ],
+  //     totalVotes: 0,
+  //     endDate: "2024-07-30",
+  //   }
+  // ]);
+
+
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
@@ -58,6 +68,42 @@ export default function Home() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const getVoteList = async() => {
+    const tmpVotes: TVote[] = [];
+    // const account = localStorage.getItem('linea_devoting/address');
+    
+    if (window.ethereum) {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const contract = new Contract(deVotingAddress, deVotingContractABI, provider);
+      const voteId = await contract.voteId();
+
+      for (let i = 1; i <= voteId; i++) {
+        const voteStruct = await contract.getVote(i);
+
+        const options: TOption[] = voteStruct[1].map((optionName: string, index: number) => ({
+          name: optionName,
+          voteCount: Number(voteStruct[2][index]), // 将 optionsCount 转为数字
+        }));
+
+        // const vote: TVote = {id: i.toString(), title: voteStruct[0], endDate: new Date(Number(voteStruct[4]) * 1000).toISOString().split('T')[0]};
+        const vote: TVote = {
+          id: i.toString(), // 将 id 转为字符串
+          title: voteStruct[0], // 从合约中返回的投票标题
+          options: options, // 将选项和对应的投票数填入数组
+          totalVotes: options.reduce((total, option) => total + option.voteCount, 0), // 计算总投票数
+          endDate: new Date(Number(voteStruct[4]) * 1000).toISOString().split('T')[0], // 转换时间戳为日期字符串
+        };
+        tmpVotes.push(vote);
+      }
+    }
+    setVotes(tmpVotes);
+  }
+
+  useEffect(() => {
+    getVoteList();
+  }
+  );
 
   const handleAdd = (vote: TVote) => {
     setVotes((prev) => [...prev, vote]);
@@ -188,6 +234,7 @@ export default function Home() {
             </div>
             <CreateVoteModal addVotes={handleAdd} />
           </section>
+
           <section className="min-h-screen py-16 px-4 snap-start">
             <div className="container mx-auto">
               <h2 className="text-4xl font-bold mb-8 text-center">
