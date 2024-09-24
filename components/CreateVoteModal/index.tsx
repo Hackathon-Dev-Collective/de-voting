@@ -1,35 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { type TVote } from "../../types/vote";
+import { deVotingAddress, deVotingContractABI } from "@/contracts";
 import { ethers, Contract } from "ethers";
+import { useAccount } from "@/hooks/account";
 
-const deVotingContractABI = [
-  // "function getVote(uint256 voteId) public view returns(string memory _topic, string[] memory _options, uint256[] memory _optionsCount, address _owner, uint256 _endTime)",
-  "function createVote(string memory _topic, string[] memory _options, uint256 _endTimestampSeconds) public returns (uint256)"
-]
-const deVotingAddress = "0x57Ea7AcA1331e403192BcCdF5449937a54CF2C45";
-
-export function CreateVoteModal({
-  addVotes, disabled = false
-}: {
-  addVotes: (value: TVote) => void,
-  disabled?: boolean
-}) {
+export function CreateVoteModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [options, setOptions] = useState(["", ""]);
   const [endDate, setEndDate] = useState("");
+  const { account } = useAccount();
 
   const createVote = async() => {
-    // addVotes({
-    //   title,
-    //   id: Date.now().toString(),
-    //   options: 
-    //     options.map((option) => ({ name: option, voteCount: 0 })),
-    //   totalVotes: 0,
-    //   endDate,
-    // })
 
     if (window.ethereum) {
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -39,7 +22,7 @@ export function CreateVoteModal({
       const endDateTimeStamp = new Date(endDate); // 将其转换为 Date 对象
       const unixTimestampInSeconds = Math.floor(endDateTimeStamp.getTime() / 1000); 
 
-      const optionsArray = Object.keys(options).map(key => options[key].toString());
+      const optionsArray: string[] = Object.keys(options).map(key => options[key].toString());
       const voteId = await contract.createVote(title, optionsArray, unixTimestampInSeconds);
       await voteId.wait();
       setIsOpen(false);
@@ -55,7 +38,7 @@ export function CreateVoteModal({
       <button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-8 right-8 bg-custom-blue text-black px-6 py-3 rounded-full font-semibold enabled:hover:bg-opacity-90 transition-colors shadow-lg disabled:opacity-50"
-        disabled={disabled}
+        disabled={account ? false : true}
       >
         Create Vote
       </button>

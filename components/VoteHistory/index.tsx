@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { ethers, Contract, formatUnits } from "ethers";
+import { ethers, Contract } from "ethers";
+import { deVotingAddress, deVotingContractABI } from "@/contracts";
 
 type Vote = {
   id: string;
@@ -7,12 +8,6 @@ type Vote = {
   date: string;
   choice: string;
 };
-
-const deVotingContractABI = [
-  "function voteId() public view returns (uint256)",
-  "function getVote(uint256 voteId) public view returns(string memory _topic, string[] memory _options, uint256[] memory _optionsCount, address _owner, uint256 _endTime)"
-]
-const deVotingAddress = "0x57Ea7AcA1331e403192BcCdF5449937a54CF2C45";
 
 export function VoteHistory({ address }: { address: string }) {
   const [votes, setVotes] = useState<Vote[]>([]);

@@ -1,82 +1,90 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useAccount } from '@/hooks/account';
+import { useRouter } from 'next/navigation';
+import { useState, useRef } from 'react';
+import AddressShorten from '@/components/AddressShorten';
 
 export function ConnectWallet() {
   // const [isConnecting, setIsConnecting] = useState(false)
-  const [account, setAccount] = useState(null)
-  const router = useRouter()
+  const { account, balance, error, tokenSymbol, connectWallet, disconnectWallet } = useAccount()
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isHovering, setIsHovering] = useState<boolean>(false);
+  const router = useRouter(); 
 
-  const switchToLineaSepolia = async () => {
-    if (account == null) {
-      if (window.ethereum) {
-        const accounts = await window.ethereum.request({
-          "method": "eth_requestAccounts",
-          "params": [],
-        });
-        await setAccount(accounts[0])
+  const handleConnect = async () => {
+    await connectWallet();
+  };
 
-        // how to switch net: https://docs.metamask.io/wallet/reference/wallet_switchethereumchain/
-        // what's the net chainId?: https://chainlist.org/?testnets=true&search=linea
-        await window.ethereum.request({
-          "method": "wallet_switchEthereumChain",
-          "params": [
-          {
-            chainId: "0xe705"
-          }
-        ],
-        });
-
-        router.push(`/profile/${accounts[0]}`)
-      }
-    }
-    router.push(`/profile/${account}`)
+  const handleDisconnect = async () => {
+    disconnectWallet();
   }
 
-  // 加载时从 localStorage 中恢复状态
-  useEffect(() => {
-    const savedState = localStorage.getItem('linea_devoting/address');
-    if (savedState) {
-      setAccount(savedState);
-    }
-  }, []);
-
-  // 保存状态到 localStorage
-  useEffect(() => {
+  const handleClick = () => {
     if (account) {
-      localStorage.setItem('linea_devoting/address', account);
+      router.push(`/profile/${account}`);
     }
-  }, [account]);
+  }
 
-  // const connectWallet = async () => {
-  //   setIsConnecting(true)
-  //   // 这里应该是实际的钱包连接逻辑
-  //   await new Promise(resolve => setTimeout(resolve, 1000))
-  //   setIsConnecting(false)
-  //   router.push(`/profile/${account}`) // 假设地址是0x123
-  // }
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    setIsHovering(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsHovering(false);
+    }, 300); // 300ms delay before closing
+  };
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
+
+  if (account) {
+    return (
+      <div
+        className="fixed top-8 right-8 cursor-pointer bg-custom-blue text-black px-6 py-3 rounded-full font-semibold enabled:hover:bg-opacity-90 transition-colors shadow-lg disabled:opacity-50"
+        onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <AddressShorten address={account  } />
+        {isHovering && (
+          <div
+            className="absolute top-full left-0 mt-2 w-full bg-slate-400 text-white rounded shadow-lg p-4"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            {balance !== null && tokenSymbol && (
+              <div className="mb-2 text-center">
+                <div>Balance</div>
+                <div className='text-lg'>{`${balance} ${tokenSymbol}`}</div>
+              </div>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDisconnect();
+              }}
+              className="w-full bg-red-400 text-white px-4 py-2 rounded-full hover:bg-red-9 00 transition-colors"
+            >
+              Disconnect
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <button
-      onClick={switchToLineaSepolia}
-      // disabled={isConnecting}
-      className="bg-custom-blue text-black px-8 py-2 rounded-full font-semibold hover:bg-opacity-70 transition-colors"
+      onClick={handleConnect}
+      className="bg-white text-purple-600 px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-colors"
     >
-      {account != null ? (
-    <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-      <img
-        src="/icn-metamask.svg"
-        width="20"
-        height="20"
-        alt="MetaMask Icon"
-        style={{ display: 'inline-block', verticalAlign: 'middle' }}
-      />
-      <span style={{ marginLeft: '8px' }}>{`${account.slice(0, 5)}...${account.slice(-3)}`}</span>
-    </span>
-  ) : (
-    'Connect Wallet'
-  )}
+      Connect Wallet to Start
     </button>
   )
 }
