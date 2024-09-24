@@ -7,12 +7,9 @@ import { CreateVoteModal } from "@/components/CreateVoteModal";
 import Vote from "@/components/Vote";
 import { type TVote, type TOption } from "@/types/vote";
 import { ethers, Contract } from "ethers";
+import { deVotingContractABI, deVotingAddress } from "@/contracts";
+import { useAccount } from "@/hooks/account";
 
-const deVotingContractABI = [
-  "function voteId() public view returns (uint256)",
-  "function getVote(uint256 voteId) public view returns(string memory _topic, string[] memory _options, uint256[] memory _optionsCount, address _owner, uint256 _endTime)"
-]
-const deVotingAddress = "0x57Ea7AcA1331e403192BcCdF5449937a54CF2C45";
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -102,12 +99,7 @@ export default function Home() {
 
   useEffect(() => {
     getVoteList();
-  }
-  );
-
-  const handleAdd = (vote: TVote) => {
-    setVotes((prev) => [...prev, vote]);
-  };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -195,8 +187,8 @@ export default function Home() {
               <p className="text-xl mb-8 animate-fade-in-up animation-delay-300">
                 Decentralized voting on the Linea network
               </p>
-              <ConnectWallet />
             </div>
+            <ConnectWallet />
             <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
               <svg
                 className="w-6 h-6"
@@ -222,7 +214,10 @@ export default function Home() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {votes.length > 0 &&
-                  votes.map((vote) => (
+                  votes.filter(vote => {
+                    const date = new Date(vote.endDate);
+                    return date.getTime() > Date.now();
+                  }).map((vote) => (
                     <Vote
                       key={vote.id}
                       title={vote.title}
@@ -232,7 +227,7 @@ export default function Home() {
                   ))}
               </div>
             </div>
-            <CreateVoteModal addVotes={handleAdd} />
+            <CreateVoteModal />
           </section>
 
           <section className="min-h-screen py-16 px-4 snap-start">
@@ -242,13 +237,15 @@ export default function Home() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {votes.length > 0 &&
-                  votes.map((vote) => (
+                  votes.filter(vote => {
+                    const date = new Date(vote.endDate);
+                    return date.getTime() < Date.now();
+                  }).map((vote) => (
                     <Vote
                       key={vote.id}
                       title={vote.title}
                       vote_id={vote.id}
                       end_date={vote.endDate}
-                      show_history={true}
                     />
                   ))}
               </div>
