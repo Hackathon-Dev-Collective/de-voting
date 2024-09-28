@@ -5,9 +5,11 @@ export const deVotingContractABI = [
   "function submitVote(uint256 _voteId, uint256 _optionIndex, uint256 _optionCount) returns (bool)",
   "function submitVote(uint256 _voteId, uint256 _optionIndex, uint256 _optionCount) public returns (bool)",
   "function checkIfUserVoted(uint256 _voteId, address user) public view returns (bool)",
-  "function getVotedInfo(uint256 _voteId, address user) public view returns (string memory choice, uint256 choseCount, uint256 timeStamp)"
+  "function getVotedInfo(uint256 _voteId, address user) public view returns (string memory choice, uint256 choseCount, uint256 timeStamp)",
+  "function checkIfUserHavaAllowance(uint256 _voteId, address user) public view returns (bool)",
+  "function inviteUserVote(uint256 _voteId, address user) public returns (bool)"
 ];
-export const deVotingAddress = "0xAe8868Cb2500a2b6c8035c24207e66AF92d05259";
+export const deVotingAddress = "0x75EBa7c3AE19FD9efB1F6c4aE13C41C7993669f9";
 
 export const voteToken = "0x1F9Ec6c29eE87b89c3732984cEf8BD7e99d9c713";
 

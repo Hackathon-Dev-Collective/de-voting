@@ -82,7 +82,7 @@ export function ConnectWallet() {
   return (
     <button
       onClick={handleConnect}
-      className="bg-white text-purple-600 px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-colors"
+      className="bg-white text-black px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-colors"
     >
       Connect Wallet to Start
     </button>

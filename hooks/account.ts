@@ -86,6 +86,7 @@ export function useAccount() {
       if (typeof window.ethereum !== "undefined") {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const accounts = await provider.listAccounts();
+        console.log(accounts);
         if (accounts.length > 0) {
           const address = await accounts[0].getAddress();
           setAccount(address);

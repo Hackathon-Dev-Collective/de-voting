@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, cache } from "react";
 import { type TVote, type TOption } from "@/types/vote";
 import { ethers, Contract } from "ethers";
 import { deVotingAddress, deVotingContractABI } from "@/contracts";
@@ -12,7 +12,10 @@ export default function VoteResultPage() {
   const [voteData, setVoteData] = useState<TVote| null>(null);
   const [isEnded, setIsEnded] = useState<boolean>(false);
   const [isVoted, setIsVoted] = useState<boolean>(false);
+  const [canAllowance, setCanAllowance] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [messages, setMessages] = useState([]);
+  const [inviteAddress, setInviteAddress] = useState("");
 
   function handleSelect(index: number) {
     if (index !== selectedOption) {
@@ -22,14 +25,58 @@ export default function VoteResultPage() {
     } 
   }
 
+  function messageAlter() {
+    setMessages((prevMessages) => [
+      { id: Date.now(), text: "you have no access to vote this. please find allowance." },
+      ...prevMessages,
+    ]);
+  }
+
   async function handleClick() {
-    if (window.ethereum) {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new Contract(deVotingAddress, deVotingContractABI, signer);
-      const tx = await contract.submitVote(id, selectedOption, 1);
-      console.log(tx);
+    if (!canAllowance) {
+      messageAlter();
+      return;
     }
+    try {
+      if (window.ethereum) {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = new Contract(deVotingAddress, deVotingContractABI, signer);
+        const tx = await contract.submitVote(id, selectedOption, 1);
+        console.log(tx);
+        if (tx) {
+          alert(`submitVote success`);
+        } else {
+          alert(`submitVote failed`);
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  const inviteSubmit = async() => {
+    try {
+      if (window.ethereum) {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = new Contract(deVotingAddress, deVotingContractABI, signer);
+        const tx = await contract.inviteUserVote(id, inviteAddress);
+        console.log(tx);
+        if (tx) {
+          alert(`invite user ${inviteAddress} success`);
+        } else {
+          alert(`invite user ${inviteAddress} failed`);
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  const handleInviteSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    inviteSubmit();
   }
 
   const getVote = async() => {
@@ -37,11 +84,15 @@ export default function VoteResultPage() {
     
     if (window.ethereum) {
       const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner()
+      const signer = await provider.getSigner();
       const contract = new Contract(deVotingAddress, deVotingContractABI, provider);
       const userVoted = await contract.checkIfUserVoted(id, signer.address);
       setIsVoted(userVoted);
       const voteStruct = await contract.getVote(id);
+
+      // 是否有权限邀请人来投票
+      const _canAllowance = await contract.checkIfUserHavaAllowance(id, signer.address);
+      setCanAllowance(_canAllowance);
 
       const options: TOption[] = voteStruct[1].map((optionName: string, index: number) => ({
         name: optionName,
@@ -65,7 +116,6 @@ export default function VoteResultPage() {
     }
   }
 
-
   // get vote data
   useEffect(() => {
     getVote();
@@ -77,6 +127,29 @@ export default function VoteResultPage() {
     </div>
   );
 
+  function inviteUser() {
+    return (
+      <>
+          <form onSubmit={handleInviteSubmit} className="flex items-center space-x-4 w-full">
+            <div className="w-full">
+              <input 
+                type="text"
+                placeholder="You can invite user to vote. please input user address"
+                value = {inviteAddress}
+                onChange={(e) => setInviteAddress(e.target.value)}
+                className="text-black w-full border rounded-full h-10"
+              />
+            </div>
+            <div>
+              <button type="submit" className="bg-custom-blue px-7 py-2 rounded-full hover:scale-105 transition-transform duration-300 cursor-pointer text-black">
+                Invite
+              </button>
+            </div>
+          </form>
+      </>
+    )
+  }
+
   function renderOptions() {
     if (isVoted || isEnded) {
       return (
@@ -87,7 +160,7 @@ export default function VoteResultPage() {
               <p className="font-semibold">{option.name}</p>
               <div className="bg-white bg-opacity-30 h-8 rounded-full overflow-hidden">
                 <div
-                  className="bg-white h-full"
+                  className="bg-custom-blue h-full"
                   style={{
                     width: `${
                       voteData!.totalVotes !== 0
@@ -121,27 +194,53 @@ export default function VoteResultPage() {
           ))}
           <div className="container text-center">
           <button 
-            className="bg-custom-blue bg-opacity-30 px-7 py-2 rounded-full mt-4 hover:scale-105 transition-transform duration-300 cursor-pointer" disabled={isEnded || selectedOption === null}
+            className="bg-custom-blue px-7 py-2 rounded-full text-black mt-4 hover:scale-105 transition-transform duration-300 cursor-pointer" disabled={isEnded || selectedOption === null}
             onClick={handleClick}
           >
             Vote
           </button>
+          <div className="mt-4">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className="bg-gray-100 border border-gray-300 rounded p-4 mb-2 transition-opacity duration-500 text-black"
+                style={{ opacity: 1, animation: 'fadeOut 5s forwards' }}
+                onAnimationEnd={() => setMessages((prev) => prev.filter((m) => m.id !== msg.id))}
+              >
+                {msg.text}
+              </div>
+            ))}
+            </div>
+            <style jsx>{`
+              @keyframes fadeOut {
+                0% {
+                  opacity: 1;
+                }
+                100% {
+                  opacity: 0;
+                }
+              }
+            `}</style>
           </div>
         </>
       )
     }
 
   }
-  
+
+  // function 
   return (
     <div className="min-h-screen bg-black text-white p-8">
       <div className="max-w-2xl mx-auto bg-white bg-opacity-20 p-8 rounded-3xl shadow-lg">
-      <div className="container text-center">
-        <h1 className="text-3xl font-bold mb-4">
-          <a href="/">{voteData.title}</a>
-        </h1>
+        <div className="container text-center">
+          <h1 className="text-3xl font-bold mb-4">
+            <a href="/">{voteData.title}</a>
+          </h1>
         </div>
-        {renderOptions()}
+          {renderOptions()}
+        <div className="flex w-full mt-10">
+          {inviteUser()}
+        </div>
       </div>
     </div>
   );

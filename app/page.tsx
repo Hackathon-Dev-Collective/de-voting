@@ -47,7 +47,7 @@ export default function Home() {
           title: voteStruct[0], // 从合约中返回的投票标题
           options: options, // 将选项和对应的投票数填入数组
           totalVotes: options.reduce((total, option) => total + option.voteCount, 0), // 计算总投票数
-          endDate: new Date(Number(voteStruct[4]) * 1000).toLocaleDateString(), // 转换时间戳为日期字符串
+          endDate: new Date(Number(voteStruct[4]) * 1000).toLocaleString(), // 转换时间戳为日期字符串
         };
         tmpVotes.push(vote);
       }

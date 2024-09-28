@@ -25,7 +25,7 @@ export function Vote({
           <p className="mb-4">Ended in {end_date}</p>
           <Link
             href={`/vote/${vote_id}`}
-            className="inline-block bg-white text-black px-6 py-2 rounded-full hover:bg-opacity-90 transition-colors"
+            className="inline-block bg-custom-blue text-black px-6 py-2 rounded-full hover:bg-opacity-90 transition-colors"
           >
             View Results
           </Link>
@@ -39,7 +39,7 @@ export function Vote({
         <p className="mb-4">Ends at {end_date}</p>
         <Link
           href={`/vote/${vote_id}`}
-          className="inline-block bg-white text-black px-6 py-2 rounded-full hover:bg-opacity-90 transition-colors"
+          className="inline-block bg-custom-blue text-black px-6 py-2 rounded-full hover:bg-opacity-90 transition-colors"
         >
           Vote
         </Link>
