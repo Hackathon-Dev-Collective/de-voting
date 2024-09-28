@@ -19,8 +19,7 @@ export default function VoteResultPage() {
       setSelectedOption(index);
     } else {
       setSelectedOption(null);
-    }
-    
+    } 
   }
 
   async function handleClick() {
@@ -38,8 +37,9 @@ export default function VoteResultPage() {
     
     if (window.ethereum) {
       const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner()
       const contract = new Contract(deVotingAddress, deVotingContractABI, provider);
-      const userVoted = await contract.checkIfUserVoted(id);
+      const userVoted = await contract.checkIfUserVoted(id, signer.address);
       setIsVoted(userVoted);
       const voteStruct = await contract.getVote(id);
 
@@ -78,7 +78,7 @@ export default function VoteResultPage() {
   );
 
   function renderOptions() {
-    if (isEnded) {
+    if (isVoted || isEnded) {
       return (
         <>
           <p className="mb-4">Total Votes: {voteData!.totalVotes}</p>
@@ -119,12 +119,14 @@ export default function VoteResultPage() {
               <Choice name={option.name} selected={selectedOption === index} />
             </div>
           ))}
+          <div className="container text-center">
           <button 
-            className="bg-white bg-opacity-30 px-4 py-2  rounded-full mt-4" disabled={isVoted || selectedOption === null}
+            className="bg-custom-blue bg-opacity-30 px-7 py-2 rounded-full mt-4 hover:scale-105 transition-transform duration-300 cursor-pointer" disabled={isEnded || selectedOption === null}
             onClick={handleClick}
           >
             Vote
           </button>
+          </div>
         </>
       )
     }
@@ -133,10 +135,12 @@ export default function VoteResultPage() {
   
   return (
     <div className="min-h-screen bg-black text-white p-8">
-      <div className="max-w-md mx-auto bg-white bg-opacity-20 p-8 rounded-lg">
+      <div className="max-w-2xl mx-auto bg-white bg-opacity-20 p-8 rounded-3xl shadow-lg">
+      <div className="container text-center">
         <h1 className="text-3xl font-bold mb-4">
           <a href="/">{voteData.title}</a>
         </h1>
+        </div>
         {renderOptions()}
       </div>
     </div>
@@ -149,7 +153,7 @@ function Choice({name, selected}: {
 }) {
   if (selected) {
     return (
-      <div className="mb-4 bg-white bg-opacity-30 p-2 rounded-sm">
+      <div className="mb-4 bg-custom-blue p-3 rounded-3xl cursor-pointer">
         <p className="font-semibold">{name}</p>
       </div>
     );

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ConnectWallet } from "@/components/ConnectWallet";
 import { CreateVoteModal } from "@/components/CreateVoteModal";
-import Vote from "@/components/Vote";
+import {Vote} from "@/components/Vote";
 import { type TVote, type TOption } from "@/types/vote";
 import { ethers, Contract } from "ethers";
 import { deVotingContractABI, deVotingAddress } from "@/contracts";
@@ -14,48 +14,6 @@ import { useAccount } from "@/hooks/account";
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [votes, setVotes] = useState<TVote[] | []>([]);
-  // const [votes, setVotes] = useState<TVote[] | []>([
-  //   {
-  //     title: "sample vote",
-  //     id: "1",
-  //     options: [
-  //       { name: "sample option1", voteCount: 0 },
-  //       { name: "sample option2", voteCount: 0 },
-  //     ],
-  //     totalVotes: 0,
-  //     endDate: "2024-09-30",
-  //   },
-  //   {
-  //     title: "sample vote",
-  //     id: "2",
-  //     options: [
-  //       { name: "sample option1", voteCount: 0 },
-  //       { name: "sample option2", voteCount: 0 },
-  //     ],
-  //     totalVotes: 0,
-  //     endDate: "2024-10-22",
-  //   },
-  //   {
-  //     title: "sample vote",
-  //     id: "3",
-  //     options: [
-  //       { name: "sample option1", voteCount: 0 },
-  //       { name: "sample option2", voteCount: 0 },
-  //     ],
-  //     totalVotes: 0,
-  //     endDate: "2024-10-30",
-  //   },
-  //   {
-  //     title: "sample vote",
-  //     id: "1",
-  //     options: [
-  //       { name: "sample option1", voteCount: 0 },
-  //       { name: "sample option2", voteCount: 0 },
-  //     ],
-  //     totalVotes: 0,
-  //     endDate: "2024-07-30",
-  //   }
-  // ]);
 
 
   const [scrollY, setScrollY] = useState(0);
@@ -89,7 +47,7 @@ export default function Home() {
           title: voteStruct[0], // 从合约中返回的投票标题
           options: options, // 将选项和对应的投票数填入数组
           totalVotes: options.reduce((total, option) => total + option.voteCount, 0), // 计算总投票数
-          endDate: new Date(Number(voteStruct[4]) * 1000).toISOString().split('T')[0], // 转换时间戳为日期字符串
+          endDate: new Date(Number(voteStruct[4]) * 1000).toLocaleDateString(), // 转换时间戳为日期字符串
         };
         tmpVotes.push(vote);
       }

@@ -73,10 +73,10 @@ export default function ProfilePage() {
           <p className="mb-4">DVT: {dvtBalance}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-8"> */}
           <VoteHistory address={state.address} />
           {/* <RewardHistory address={state.address} /> */}
-        </div>
+        {/* </div> */}
       </div>
       {/* {showReward && <RewardAnimation />} */}
     </div>

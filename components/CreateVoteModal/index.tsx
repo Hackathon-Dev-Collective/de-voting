@@ -13,7 +13,6 @@ export function CreateVoteModal() {
   const { account } = useAccount();
 
   const createVote = async() => {
-
     if (window.ethereum) {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
