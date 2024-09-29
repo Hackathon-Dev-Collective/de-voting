@@ -80,6 +80,7 @@ export function useAccount() {
       const symbol = await contract.symbol();
       const balanceTransfer = Number(ethers.formatUnits(balance, decimals)).toFixed(2)
 
+      console.log(balance);
       setBalance(balanceTransfer);
       setTokenSymbol(symbol);
       setIsLoading(false);

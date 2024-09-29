@@ -49,9 +49,9 @@ export default function ProfilePage() {
           <p className="mb-4">Balance: {`${balance} ${tokenSymbol}`}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           <VoteHistory address={account!} />
-          <RewardHistory address={account!} />
+          {/* <RewardHistory address={account!} /> */}
         </div>
       </div>
       {/* {showReward && <RewardAnimation />} */}

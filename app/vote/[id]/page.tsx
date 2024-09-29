@@ -42,10 +42,11 @@ export default function VoteResultPage() {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         const contract = new Contract(deVotingAddress, deVotingContractABI, signer);
+        const rewardcount = await contract.rewardCount();
         const tx = await contract.submitVote(id, selectedOption, 1);
         console.log(tx);
         if (tx) {
-          alert(`submitVote success`);
+          alert(`submitVote success, you will get ${rewardcount} DVT`);
         } else {
           alert(`submitVote failed`);
         }
