@@ -13,26 +13,7 @@ export function RewardHistory({ address }: { address: string }) {
   useEffect(() => {
     // 这里应该是从后端获取奖励历史的逻辑
     // 为了演示,我们使用模拟数据
-    const mockRewards: Reward[] = [
-      {
-        id: "1",
-        amount: 10,
-        date: "2023-06-02",
-        reason: "Participation in Proposal A",
-      },
-      {
-        id: "2",
-        amount: 15,
-        date: "2023-06-16",
-        reason: "Participation in Proposal B",
-      },
-      {
-        id: "3",
-        amount: 20,
-        date: "2023-07-02",
-        reason: "Participation in Proposal C",
-      },
-    ];
+    const mockRewards: Reward[] = [];
     setRewards(mockRewards);
   }, [address]);
 
@@ -53,7 +34,8 @@ export function RewardHistory({ address }: { address: string }) {
           ))}
         </ul>
       ) : (
-        <p>No reward history available.</p>
+        <p>{`No reward history available. 
+          We'll later complete this feature`}</p>
       )}
     </div>
   );

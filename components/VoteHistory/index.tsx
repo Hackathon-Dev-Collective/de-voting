@@ -36,21 +36,28 @@ export function VoteHistory({ address }: { address: string }) {
 
   return (
     <div className="container mx-auto flex flex-col bg-write bg-opacity-20 p-6 rounded-lg backdrop-blur-md">
-      <div className="container text-center" >
-        <h2 className="text-2xl font-bold mb-4 ">Vote History</h2>
+      <div className="bg-white bg-opacity-20 p-6 rounded-lg backdrop-blur-md">
+        <h2 className="text-2xl font-bold mb-4">Reward History</h2>
       </div>
       <div className="grid lg:grid-cols-1 md:grid-cols-1 grid-cols-1 text-center gap-8">
-        {votes.length > 0 && 
-            votes.filter(vote => {
-              return vote.choice.length != 0;
-            }).map((vote) => (
-              <OwnerVoteInfo
-                choice={vote.choice}
-                title={vote.title}
-                vote_id={vote.id}
-                end_date={vote.date}
-              />
-            ))}
+        {votes.length > 0 && (
+        <ul className="space-y-4">
+          
+            {votes
+              .filter((vote) => {
+                return vote.choice.length != 0;
+              })
+              .map((vote) => (
+                <li key={vote.id}>
+                  <OwnerVoteInfo
+                    choice={vote.choice}
+                    title={vote.title}
+                    vote_id={vote.id}
+                    end_date={vote.date}
+                  />
+                </li>
+              ))}
+        </ul> ) }
       </div>
     </div>
   );

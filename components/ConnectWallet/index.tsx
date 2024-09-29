@@ -61,7 +61,7 @@ export function ConnectWallet() {
             {balance !== null && tokenSymbol && (
               <div className="mb-2 text-center">
                 <div>Balance</div>
-                <div className='text-lg'>{`${balance} ${tokenSymbol}`}</div>
+                <div className='text-base'>{`${balance} ${tokenSymbol}`}</div>
               </div>
             )}
             <button
