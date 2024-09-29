@@ -14,6 +14,7 @@ import { useAccount } from "@/hooks/account";
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [votes, setVotes] = useState<TVote[] | []>([]);
+  const account = useAccount();
 
 
   const [scrollY, setScrollY] = useState(0);
@@ -57,7 +58,7 @@ export default function Home() {
 
   useEffect(() => {
     getVoteList();
-  }, []);
+  }, [account]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
