@@ -7,8 +7,10 @@ export function useAccount() {
   const [error, setError] = useState<string | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
   const [tokenSymbol, setTokenSymbol] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<bool>(false);
 
   const connectWallet = async () => {
+    setIsLoading(true);
     try {
       if (typeof window.ethereum !== "undefined") {
         const provider = new ethers.BrowserProvider(window.ethereum);
@@ -55,6 +57,8 @@ export function useAccount() {
       }
     } catch (err) {
       setError("Failed to connect to MetaMask");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -68,22 +72,28 @@ export function useAccount() {
     address: string,
     provider: ethers.BrowserProvider
   ) => {
+    setIsLoading(true);
     try {
       const contract = new ethers.Contract(voteToken, voteTokenABI, provider);
       const balance = await contract.balanceOf(address);
       const decimals = await contract.decimals();
       const symbol = await contract.symbol();
+      const balanceTransfer = Number(ethers.formatUnits(balance, decimals)).toFixed(2)
 
-      setBalance(ethers.formatUnits(balance, decimals));
+      setBalance(balanceTransfer);
       setTokenSymbol(symbol);
+      setIsLoading(false);
     } catch (err) {
       setError("Failed to fetch token information");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     const checkConnection = async () => {
       if (typeof window.ethereum !== "undefined") {
+        setIsLoading(true);
         const provider = new ethers.BrowserProvider(window.ethereum);
         const accounts = await provider.listAccounts();
         console.log(accounts);
@@ -92,6 +102,7 @@ export function useAccount() {
           setAccount(address);
           await updateTokenInfo(address, provider);
         }
+        setIsLoading(false);
       }
     };
 
@@ -99,6 +110,7 @@ export function useAccount() {
 
     if (typeof window.ethereum !== "undefined") {
       window.ethereum.on("accountsChanged", async (accounts: string[]) => {
+        setIsLoading(true);
         const newAccount = accounts[0] || null;
         setAccount(newAccount);
         if (newAccount) {
@@ -108,6 +120,7 @@ export function useAccount() {
           setBalance(null);
           setTokenSymbol(null);
         }
+        setIsLoading(false);
       });
     }
 
@@ -123,6 +136,7 @@ export function useAccount() {
     error,
     balance,
     tokenSymbol,
+    isLoading,
     connectWallet,
     disconnectWallet,
   };
