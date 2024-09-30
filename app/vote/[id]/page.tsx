@@ -1,8 +1,8 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState, useEffect, cache } from "react";
-import { type TVote, type TOption } from "@/types/vote";
+import { useState, useEffect } from "react";
+import type {  TVote, TOption } from "@/types/vote";
 import { ethers, Contract } from "ethers";
 import { deVotingAddress, deVotingContractABI } from "@/contracts";
 
@@ -14,8 +14,13 @@ export default function VoteResultPage() {
   const [isVoted, setIsVoted] = useState<boolean>(false);
   const [canAllowance, setCanAllowance] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [messages, setMessages] = useState([]);
-  const [inviteAddress, setInviteAddress] = useState("");
+  const [message, setMessage] = useState<TMessage | null>(null);
+  const [inviteAddress, setInviteAddress] = useState<string | null>(null);
+
+  type TMessage = {
+    id: number;
+    text: string;
+  }
 
   function handleSelect(index: number) {
     if (index !== selectedOption) {
@@ -26,10 +31,9 @@ export default function VoteResultPage() {
   }
 
   function messageAlter() {
-    setMessages((prevMessages) => [
-      { id: Date.now(), text: "you have no access to vote this. please find allowance." },
-      ...prevMessages,
-    ]);
+    setMessage(
+      { id: Date.now(), text: "you have no access to vote this. please find allowance." }
+    );
   }
 
   async function handleClick() {
@@ -80,45 +84,59 @@ export default function VoteResultPage() {
     inviteSubmit();
   }
 
-  const getVote = async() => {
-    // const account = localStorage.getItem('linea_devoting/address');
-    
-    if (window.ethereum) {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new Contract(deVotingAddress, deVotingContractABI, provider);
-      const userVoted = await contract.checkIfUserVoted(id, signer.address);
-      setIsVoted(userVoted);
-      const voteStruct = await contract.getVote(id);
-
-      // 是否有权限邀请人来投票
-      const _canAllowance = await contract.checkIfUserHavaAllowance(id, signer.address);
-      setCanAllowance(_canAllowance);
-
-      const options: TOption[] = voteStruct[1].map((optionName: string, index: number) => ({
-        name: optionName,
-        voteCount: Number(voteStruct[2][index]), // 将 optionsCount 转为数字
-      }));
-
-      const endDate = new Date(Number(voteStruct[4]) * 1000);
-      const now = Date.now();
-      setIsEnded(endDate.getTime() < now);
-
-      // const vote: TVote = {id: i.toString(), title: voteStruct[0], endDate: new Date(Number(voteStruct[4]) * 1000).toISOString().split('T')[0]};
-      const vote: TVote = {
-        id: id.toString(), // 将 id 转为字符串
-        title: voteStruct[0], // 从合约中返回的投票标题
-        options: options, // 将选项和对应的投票数填入数组
-        totalVotes: options.reduce((total, option) => total + option.voteCount, 0), // 计算总投票数
-        endDate: endDate.toISOString().split('T')[0], // 转换时间戳为日期字符串
-      };
-      
-      setVoteData(vote);
-    }
-  }
+  
 
   // get vote data
   useEffect(() => {
+    const getVote = async () => {
+      // const account = localStorage.getItem('linea_devoting/address');
+
+      if (window.ethereum) {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = new Contract(
+          deVotingAddress,
+          deVotingContractABI,
+          provider
+        );
+        const userVoted = await contract.checkIfUserVoted(id, signer.address);
+        setIsVoted(userVoted);
+        const voteStruct = await contract.getVote(id);
+
+        // 是否有权限邀请人来投票
+        const _canAllowance = await contract.checkIfUserHavaAllowance(
+          id,
+          signer.address
+        );
+        setCanAllowance(_canAllowance);
+
+        const options: TOption[] = voteStruct[1].map(
+          (optionName: string, index: number) => ({
+            name: optionName,
+            voteCount: Number(voteStruct[2][index]), // 将 optionsCount 转为数字
+          })
+        );
+
+        const endDate = new Date(Number(voteStruct[4]) * 1000);
+        const now = Date.now();
+        setIsEnded(endDate.getTime() < now);
+
+        // const vote: TVote = {id: i.toString(), title: voteStruct[0], endDate: new Date(Number(voteStruct[4]) * 1000).toISOString().split('T')[0]};
+        const vote: TVote = {
+          id: id.toString(), // 将 id 转为字符串
+          title: voteStruct[0], // 从合约中返回的投票标题
+          options: options, // 将选项和对应的投票数填入数组
+          totalVotes: options.reduce(
+            (total, option) => total + option.voteCount,
+            0
+          ), // 计算总投票数
+          endDate: endDate.toISOString().split("T")[0], // 转换时间戳为日期字符串
+        };
+
+        setVoteData(vote);
+      }
+    };
+
     getVote();
   }, [id]);
 
@@ -136,7 +154,7 @@ export default function VoteResultPage() {
               <input 
                 type="text"
                 placeholder="You can invite user to vote. please input user address"
-                value = {inviteAddress}
+                value={inviteAddress || ""}
                 onChange={(e) => setInviteAddress(e.target.value)}
                 className="text-black w-full border rounded-full h-10"
               />
@@ -201,16 +219,16 @@ export default function VoteResultPage() {
             Vote
           </button>
           <div className="mt-4">
-            {messages.map((msg) => (
+            { message && (
               <div
-                key={msg.id}
+                key={message.id}
                 className="bg-gray-100 border border-gray-300 rounded p-4 mb-2 transition-opacity duration-500 text-black"
                 style={{ opacity: 1, animation: 'fadeOut 5s forwards' }}
-                onAnimationEnd={() => setMessages((prev) => prev.filter((m) => m.id !== msg.id))}
+                onAnimationEnd={() => setMessage(null)}
               >
-                {msg.text}
+                {message.text}
               </div>
-            ))}
+            )}
             </div>
             <style jsx>{`
               @keyframes fadeOut {
