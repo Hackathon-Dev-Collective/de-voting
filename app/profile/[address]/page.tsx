@@ -1,7 +1,7 @@
 "use client";
 
 // import { RewardAnimation } from "@/components/RewardAnimation";
-import { RewardHistory } from "@/components/RewardHistory";
+// import { RewardHistory } from "@/components/RewardHistory";
 import { VoteHistory } from "@/components/VoteHistory";
 import Link from "next/link";
 import { useAccount } from "@/hooks/account";

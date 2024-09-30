@@ -18,7 +18,7 @@ export function Vote({
     const currentDate = new Date().toLocaleDateString();
     // const dateDiff = Math.floor((endDate.getTime() - now) / (1000 * 60 * 60 * 24));
 
-    if (end_date < currentDate) {
+    if (currentDate > end_date) {
       return (
         <div className="bg-white bg-opacity-20 p-6 rounded-lg backdrop-blur-sm transition-all duration-300 hover:bg-opacity-30 hover:scale-110">
           <h3 className="text-2xl font-semibold mb-4">{title}</h3>
@@ -27,7 +27,7 @@ export function Vote({
             href={`/vote/${vote_id}`}
             className="inline-block bg-custom-blue text-black px-6 py-2 rounded-full hover:bg-opacity-90 transition-colors"
           >
-            View Results
+            Vote
           </Link>
         </div>
       );
@@ -41,7 +41,7 @@ export function Vote({
           href={`/vote/${vote_id}`}
           className="inline-block bg-custom-blue text-black px-6 py-2 rounded-full hover:bg-opacity-90 transition-colors"
         >
-          Vote
+          View Results
         </Link>
       </div>
     );
