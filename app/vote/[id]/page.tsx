@@ -6,6 +6,11 @@ import type {  TVote, TOption } from "@/types/vote";
 import { ethers, Contract } from "ethers";
 import { deVotingAddress, deVotingContractABI } from "@/contracts";
 
+type TMessage = {
+  id: number;
+  text: string;
+}
+
 export default function VoteResultPage() {
   const { id } = useParams();
   // const [voteData, setVoteData] = useState<TVoteData| null>(null);
@@ -15,19 +20,13 @@ export default function VoteResultPage() {
   const [canAllowance, setCanAllowance] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [message, setMessage] = useState<TMessage | null>(null);
-  const [inviteAddress, setInviteAddress] = useState<string | null>(null);
 
-  type TMessage = {
-    id: number;
-    text: string;
-  }
-
-  function handleSelect(index: number) {
-    if (index !== selectedOption) {
-      setSelectedOption(index);
-    } else {
+  const handleSelect = (index: number) => {
+    if (selectedOption === index) {
       setSelectedOption(null);
-    } 
+    } else {
+      setSelectedOption(index);
+    }
   }
 
   function messageAlter() {
@@ -60,31 +59,7 @@ export default function VoteResultPage() {
     }
   }
 
-  const inviteSubmit = async() => {
-    try {
-      if (window.ethereum) {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        const contract = new Contract(deVotingAddress, deVotingContractABI, signer);
-        const tx = await contract.inviteUserVote(id, inviteAddress);
-        console.log(tx);
-        if (tx) {
-          alert(`invite user ${inviteAddress} success`);
-        } else {
-          alert(`invite user ${inviteAddress} failed`);
-        }
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
-  const handleInviteSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    inviteSubmit();
-  }
-
-  
+   
 
   // get vote data
   useEffect(() => {
@@ -146,108 +121,6 @@ export default function VoteResultPage() {
     </div>
   );
 
-  function inviteUser() {
-    return (
-      <>
-          <form onSubmit={handleInviteSubmit} className="flex items-center space-x-4 w-full">
-            <div className="w-full">
-              <input 
-                type="text"
-                placeholder="You can invite user to vote. please input user address"
-                value={inviteAddress || ""}
-                onChange={(e) => setInviteAddress(e.target.value)}
-                className="text-black w-full border rounded-full h-10"
-              />
-            </div>
-            <div>
-              <button type="submit" className="bg-custom-blue px-7 py-2 rounded-full hover:scale-105 transition-transform duration-300 cursor-pointer text-black">
-                Invite
-              </button>
-            </div>
-          </form>
-      </>
-    )
-  }
-
-  function renderOptions() {
-    if (isVoted || isEnded) {
-      return (
-        <>
-          <p className="mb-4">Total Votes: {voteData!.totalVotes}</p>
-          {voteData!.options.map((option, index) => (
-            <div key={index} className="mb-4">
-              <p className="font-semibold">{option.name}</p>
-              <div className="bg-white bg-opacity-30 h-8 rounded-full overflow-hidden">
-                <div
-                  className="bg-custom-blue h-full"
-                  style={{
-                    width: `${
-                      voteData!.totalVotes !== 0
-                        ? (option.voteCount / voteData!.totalVotes) * 100
-                        : 0
-                    }%`,
-                  }}
-                ></div>
-              </div>
-              <p className="text-sm mt-1">
-                {option.voteCount} votes (
-                {voteData!.totalVotes !== 0
-                  ? (option.voteCount / voteData!.totalVotes) * 100
-                  : 0}
-                %)
-              </p>
-            </div>
-          ))}
-        </>
-      );
-    } else {
-      return (
-        <>
-          {voteData!.options.map((option, index) => (
-            <div
-              key={`${index}@${option.name}`}
-              onClick={() => handleSelect(index)}
-            >
-              <Choice name={option.name} selected={selectedOption === index} />
-            </div>
-          ))}
-          <div className="container text-center">
-          <button 
-            className="bg-custom-blue px-7 py-2 rounded-full text-black mt-4 hover:scale-105 transition-transform duration-300 cursor-pointer" disabled={isEnded || selectedOption === null}
-            onClick={handleClick}
-          >
-            Vote
-          </button>
-          <div className="mt-4">
-            { message && (
-              <div
-                key={message.id}
-                className="bg-gray-100 border border-gray-300 rounded p-4 mb-2 transition-opacity duration-500 text-black"
-                style={{ opacity: 1, animation: 'fadeOut 5s forwards' }}
-                onAnimationEnd={() => setMessage(null)}
-              >
-                {message.text}
-              </div>
-            )}
-            </div>
-            <style jsx>{`
-              @keyframes fadeOut {
-                0% {
-                  opacity: 1;
-                }
-                100% {
-                  opacity: 0;
-                }
-              }
-            `}</style>
-          </div>
-        </>
-      )
-    }
-
-  }
-
-  // function 
   return (
     <div className="min-h-screen bg-black text-white p-8">
       <div className="max-w-2xl mx-auto bg-white bg-opacity-20 p-8 rounded-3xl shadow-lg">
@@ -256,9 +129,18 @@ export default function VoteResultPage() {
             <a href="/">{voteData.title}</a>
           </h1>
         </div>
-          {renderOptions()}
+          <RenderOptions 
+            isEnded={isEnded}
+            isVoted={isVoted}
+            voteData={voteData}
+            message={message}
+            setMessage={setMessage}
+            selectedOption={selectedOption}
+            handleClick={handleClick}
+            handleSelect={handleSelect}
+          />
         <div className="flex w-full mt-10">
-          {inviteUser()}
+          <InviteUser />
         </div>
       </div>
     </div>
@@ -282,4 +164,152 @@ function Choice({name, selected}: {
       <p className="font-semibold">{name}</p>
     </div>
   )
+}
+
+function InviteUser() {
+  const [inviteAddress, setInviteAddress] = useState<string>("");
+  const { id } = useParams();
+  const inviteSubmit = async () => {
+    try {
+      if (window.ethereum) {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = new Contract(
+          deVotingAddress,
+          deVotingContractABI,
+          signer
+        );
+        const tx = await contract.inviteUserVote(id, inviteAddress);
+        console.log(tx);
+        if (tx) {
+          alert(`invite user ${inviteAddress} success`);
+        } else {
+          alert(`invite user ${inviteAddress} failed`);
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleInviteSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    inviteSubmit();
+  };
+  return (
+    <>
+      <form
+        onSubmit={handleInviteSubmit}
+        className="flex items-center space-x-4 w-full"
+      >
+        <div className="w-full">
+          <input
+            type="text"
+            placeholder="You can invite user to vote. please input user address"
+            value={inviteAddress || ""}
+            onChange={(e) => setInviteAddress(e.target.value)}
+            className="text-black w-full border rounded-full h-10"
+          />
+        </div>
+        <div>
+          <button
+            type="submit"
+            className="bg-custom-blue px-7 py-2 rounded-full hover:scale-105 transition-transform duration-300 cursor-pointer text-black"
+          >
+            Invite
+          </button>
+        </div>
+      </form>
+    </>
+  );
+}
+
+type TRenderProps = {
+  isVoted: boolean;
+  isEnded: boolean;
+  voteData: TVote;
+  message: TMessage | null;
+  selectedOption: number | null;
+  setMessage: React.Dispatch<React.SetStateAction<TMessage | null>>;
+  handleClick: () => void;
+  handleSelect: (index: number) => void;
+};
+
+
+function RenderOptions({ isVoted, isEnded, voteData, message, selectedOption, setMessage, handleClick, handleSelect }: TRenderProps) {
+
+  if (isVoted || isEnded) {
+    return (
+      <>
+        <p className="mb-4">Total Votes: {voteData!.totalVotes}</p>
+        {voteData!.options.map((option, index) => (
+          <div key={index} className="mb-4">
+            <p className="font-semibold">{option.name}</p>
+            <div className="bg-white bg-opacity-30 h-8 rounded-full overflow-hidden">
+              <div
+                className="bg-custom-blue h-full"
+                style={{
+                  width: `${
+                    voteData!.totalVotes !== 0
+                      ? (option.voteCount / voteData!.totalVotes) * 100
+                      : 0
+                  }%`,
+                }}
+              ></div>
+            </div>
+            <p className="text-sm mt-1">
+              {option.voteCount} votes (
+              {voteData!.totalVotes !== 0
+                ? (option.voteCount / voteData!.totalVotes) * 100
+                : 0}
+              %)
+            </p>
+          </div>
+        ))}
+      </>
+    );
+  } 
+  return (
+    <>
+      {voteData!.options.map((option, index) => (
+        <div
+          key={`${index}@${option.name}`}
+          onClick={() => handleSelect(index)}
+        >
+          <Choice name={option.name} selected={selectedOption === index} />
+        </div>
+      ))}
+      <div className="container text-center">
+        <button
+          className="bg-custom-blue px-7 py-2 rounded-full text-black mt-4 hover:scale-105 transition-transform duration-300 cursor-pointer"
+          disabled={isEnded || selectedOption === null}
+          onClick={handleClick}
+        >
+          Vote
+        </button>
+        <div className="mt-4">
+          {message && (
+            <div
+              key={message.id}
+              className="bg-gray-100 border border-gray-300 rounded p-4 mb-2 transition-opacity duration-500 text-black"
+              style={{ opacity: 1, animation: "fadeOut 5s forwards" }}
+              onAnimationEnd={() => setMessage(null)}
+            >
+              {message.text}
+            </div>
+          )}
+        </div>
+        <style jsx>{`
+          @keyframes fadeOut {
+            0% {
+              opacity: 1;
+            }
+            100% {
+              opacity: 0;
+            }
+          }
+        `}</style>
+      </div>
+    </>
+  );
 }

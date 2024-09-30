@@ -8,7 +8,7 @@ import { useAccount } from "@/hooks/account";
 export function CreateVoteModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [options, setOptions] = useState(["", ""]);
+  const [options, setOptions] = useState<Array<string>>(["", ""]);
   const [endDate, setEndDate] = useState("");
   const { account } = useAccount();
 
@@ -19,10 +19,8 @@ export function CreateVoteModal() {
       const contract = new Contract(deVotingAddress, deVotingContractABI, signer);
 
       const endDateTimeStamp = new Date(endDate); // 将其转换为 Date 对象
-      const unixTimestampInSeconds = Math.floor(endDateTimeStamp.getTime() / 1000); 
-
-      const optionsArray: string[] = Object.keys(options).map(key => options[key].toString());
-      const voteId = await contract.createVote(title, optionsArray, unixTimestampInSeconds);
+      const unixTimestampInSeconds = Math.floor(endDateTimeStamp.getTime() / 1000);
+      const voteId = await contract.createVote(title, options, unixTimestampInSeconds);
       await voteId.wait();
       setIsOpen(false);
     }
@@ -61,7 +59,7 @@ export function CreateVoteModal() {
                   value={option}
                   onChange={(e) => {
                     const newOptions = [...options];
-                    newOptions[index] = e.target.value;
+                    newOptions[index] = e.target.value.toString();
                     setOptions(newOptions);
                   }}
                   placeholder={`Option ${index + 1}`}
